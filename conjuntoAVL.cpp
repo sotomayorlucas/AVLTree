@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <iostream>
-#include <random>
 using namespace std;
 #define COUNT 10
 //Visto que la clave puede ser cualquier cosa podria no llamarlo conjunto sino AVL. Total un dicc es un pair donde no se repite el primer elemento.
@@ -52,7 +51,6 @@ private: //Funciones necesarias para el funcionamiento del AVL pero no para el u
     void removerHoja(NodoAVL<T> *nodoBorrar, NodoAVL<T> *padreNodo); //Sacados del taller del ABB
     void removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreNodo);
     void removerConDosHijos(NodoAVL<T> *nodoBorrar);
-    NodoAVL<T>* subArbolPadre(NodoAVL<T> *raiz, const T &clave);
     NodoAVL<T>* maximoDeArbol(NodoAVL<T> *nodoRaiz);
     NodoAVL<T>* predecesorMaximo(NodoAVL<T> *nodo);
     void printAVL(NodoAVL<T>* root, int space);
@@ -266,9 +264,6 @@ void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreN
     delete nodoBorrar;
 }
 
-
-//TODO:Fijarse bien como funcionan los padres en esta funcion probablemente lo hace mal
-//Creo que al final solo una vez defino como padre a un nodo que es en el else asi que gane facil esto
 template <class T>
 void ConjuntoAVL<T>::removerConDosHijos(NodoAVL<T> *nodoBorrar) {
     NodoAVL<T>* predMaximo = predecesorMaximo(nodoBorrar);
@@ -326,75 +321,40 @@ void ConjuntoAVL<T>::printAVL(NodoAVL<T>* root, int space) {
     printAVL(root->izquierda, space);
 }
 
-int main(){
-    ConjuntoAVL<int> c;
-    vector<int> elementos;
+template <class T>
+void correrPrograma (ConjuntoAVL<T> c) {
     int d;
     int n;
-    for (int i = 0; i < 10; ++i) {
-        c.insertar(i);
-    }
-    c.borrar(8);
-    c.borrar(5);
-    c.printAVL();
-    /*
     bool cerrarCiclo = false;
     while(!cerrarCiclo){
         cout << "Desea saber tamaño del conjunto (0) si n pertenece (1), agregar elemento (2), borrar elemento (3) maximo (4) minimo (5) cerrar(99) otra cosa printAVL" << endl;
         cin >> d;
-        switch (d)
-        {
-        case 0:
-        {
-            cout << "Tamaño del conjunto es " << c.cardinal() << endl;
-            break;
-        }
-        case 1:
-        {
-            cout << "N pertenece al conjunto?" << endl;
-            cin >> n;
-            bool p = c.pertenece(n);
-            p ? cout << n << " pertenece" <<endl : cout << n << " no pertenece" << endl;
-            c.printAVL();
-            break;
-        }
-        case 2:
-        {
-            cout << "Ingrese el elemento a agregar:" << endl;
-            cin >> n;
-            c.insertar(n);
-            c.printAVL();
-            break;
-        }
-        case 3:
-        {
-            cout << "Ingrese el elemento a borrar:" << endl;
-            cin >> n;
-            c.borrar(n);
-            c.printAVL();
-            break;
-        }
-        case 4:
-        {
-            cout << "El maximo del conjunto es " << c.maximo() << endl;
-            break;
-        }
-        case 5:
-        {
-            cout << "El minimo del conjunto es " << c.minimo() << endl;
-            break;
-        }
-        case 99:
-        {
-            cerrarCiclo = true;
-            break;
-        }
-        default:
-        {
-            c.printAVL();
-            break;
-        }
+        switch (d) {
+            case 0:
+                cout << "Tamaño del conjunto es " << c.cardinal() << endl; break;
+            case 1: {
+                cout << "N pertenece al conjunto?" << endl; cin >> n; bool p = c.pertenece(n);
+                p ? cout << n << " pertenece" <<endl : cout << n << " no pertenece" << endl;
+                c.printAVL(); break;
+            }
+            case 2: {
+                cout << "Ingrese el elemento a agregar:" << endl; cin >> n; c.insertar(n); c.printAVL(); break;
+            }
+            case 3:
+                cout << "Ingrese el elemento a borrar:" << endl; cin >> n; c.borrar(n); c.printAVL(); break;
+            case 4:
+                cout << "El maximo del conjunto es " << c.maximo() << endl; break;
+            case 5:
+                cout << "El minimo del conjunto es " << c.minimo() << endl; break;
+            case 99:
+                cerrarCiclo = true; break;
+            default:
+                c.printAVL(); break;
         }
     }
-     */
+}
+
+int main(){
+    ConjuntoAVL<int> c;
+    correrPrograma(c);
 }
