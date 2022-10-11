@@ -93,7 +93,7 @@ void ConjuntoAVL<T>::insertar(const T& clave){
             bool irIzquierda = clave < nodo->clave;
             nodo->clave == clave ? agregado = true : agregado = false;
             nodo = irIzquierda ? nodo->izquierda : nodo->derecha;
-            if (nodo==nullptr){
+            if (nodo==nullptr && !agregado){
                 irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,padre) : padre->derecha = new NodoAVL<T>(clave,padre);
                 agregado = true;
                 rebalancear(padre);
@@ -118,14 +118,16 @@ void ConjuntoAVL<T>::borrar(const T& clave){
         padre = nodo; nodo = hijo;
         hijo = clave < nodo->clave ? nodo->izquierda : nodo->derecha;
     }
-    if (nodo->izquierda== nullptr && nodo -> derecha == nullptr)
-        removerHoja(nodo, padre);
-    else if (nodo->izquierda == nullptr || nodo->derecha == nullptr)
-        removerConUnHijo(nodo,padre);
-    else
-        removerConDosHijos(nodo);
-    rebalancear(padre);
-    _cardinal--;
+    if (nodo->clave == clave ) {
+        if (nodo->izquierda== nullptr && nodo -> derecha == nullptr)
+            removerHoja(nodo, padre);
+        else if (nodo->izquierda == nullptr || nodo->derecha == nullptr)
+            removerConUnHijo(nodo,padre);
+        else
+            removerConDosHijos(nodo);
+        rebalancear(padre);
+        _cardinal--;   
+    }
 }
 template <class T>
 const T& ConjuntoAVL<T>::minimo() const {
@@ -329,14 +331,64 @@ void ConjuntoAVL<T>::printAVL(NodoAVL<T>* root, int space) {
 int main(){
     ConjuntoAVL<int> c;
     vector<int> elementos;
-    for (int i = 0; i < 10; ++i) {
-        c.insertar(i);
-        elementos.push_back(i);
+    int d;
+    int n;
+    bool cerrarCiclo = false;
+    while(!cerrarCiclo){
+        cout << "Desea saber tamaño del conjunto (0) si n pertenece (1), agregar elemento (2), borrar elemento (3) maximo (4) minimo (5) cerrar(99) otra cosa printAVL" << endl;
+        cin >> d;
+        switch (d)
+        {
+        case 0:
+        {
+            cout << "Tamaño del conjunto es " << c.cardinal() << endl;
+            break;
+        }
+        case 1:
+        {
+            cout << "N pertenece al conjunto?" << endl;
+            cin >> n;
+            bool p = c.pertenece(n);
+            p ? cout << n << " pertenece" <<endl : cout << n << " no pertenece" << endl; 
+            c.printAVL();
+            break;
+        }
+        case 2:
+        {
+            cout << "Ingrese el elemento a agregar:" << endl;
+            cin >> n;
+            c.insertar(n);
+            c.printAVL();
+            break;
+        }
+        case 3:
+        {
+            cout << "Ingrese el elemento a borrar:" << endl;
+            cin >> n;
+            c.borrar(n);
+            c.printAVL();
+            break;
+        }
+        case 4:
+        {
+            cout << "El maximo del conjunto es " << c.maximo() << endl;
+            break;
+        }
+        case 5:
+        {
+            cout << "El minimo del conjunto es " << c.minimo() << endl;
+            break;
+        }
+        case 99:
+        {
+            cerrarCiclo = true;
+            break;
+        }
+        default:
+        {
+            c.printAVL();
+            break;
+        }
+        }
     }
-    cout << c.maximo() << endl;
-    cout << c.minimo() << endl;
-    c.borrar(8);
-    c.borrar(5);
-    c.borrar(2);
-    c.printAVL();
 }
