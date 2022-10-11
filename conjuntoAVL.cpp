@@ -2,7 +2,6 @@
 #include <iostream>
 #include <random>
 using namespace std;
-#include <bits/stdc++.h>
 #define COUNT 10
 //Visto que la clave puede ser cualquier cosa podria no llamarlo conjunto sino AVL. Total un dicc es un pair donde no se repite el primer elemento.
 //Creo que eso no funcionaria ahroa que lo pienso pq no quiero que se repitan claves, no claves y definicion.
@@ -10,6 +9,8 @@ using namespace std;
 //Creo que podria agregar un elemento al nodo que sea T definicion, agregarlo al constructuor y cuando sea usado para conjuntos la definicion sea nullptr
 // y que se agregue definicion cuando sea necesario (vease que debe hacerse una funcion que defina el nodo dado el nombre de la clave.
 
+
+//Los printsAVL los saque de una pagina que no se donde, pero no es mio :(
 template <class T>
 class NodoAVL {
 public:
@@ -30,42 +31,36 @@ public:
     unsigned int cardinal() const;
     bool pertenece(const T& clave) const;
     void insertar(const T& clave);
-    void borrar(T clave);
+    void borrar(const T& clave);
     const T& minimo() const;
     const T& maximo() const;
-    void printBalance();
     void printAVL();
 
 private: //Funciones necesarias para el funcionamiento del AVL pero no para el uso de conjuntos
-    void destruir(NodoAVL<T>* raiz);
     NodoAVL<T>* _raiz;
     unsigned int _cardinal;
+    void destruir(NodoAVL<T>* raiz);
+    void rebalancear(NodoAVL<T>* n);
+    void definirBalanceo(NodoAVL<T>* n);
     NodoAVL<T>* rotacionIzquierda (NodoAVL<T>* a);
     NodoAVL<T>* rotacionDerecha (NodoAVL<T>* a);
     NodoAVL<T>* rotacionIzqLuegoDer (NodoAVL<T>* n);
     NodoAVL<T>* rotacionDerLuegoIzq (NodoAVL<T>* n);
-    void rebalancear(NodoAVL<T>* n);
     int largo (NodoAVL<T>* n);
-    void definirBalanceo(NodoAVL<T>* n);
-    void printBalance ( NodoAVL<T> *n );
+    void removerHoja(NodoAVL<T> *arClave, NodoAVL<T> *padreClave); //Sacados del taller del ABB
+    void removerConUnHijo(NodoAVL<T>* arClave, NodoAVL<T> *padreClave);
+    void removerConDosHijos(NodoAVL<T> *arClave);
+    NodoAVL<T>* subArbolPadre(NodoAVL<T> *raiz, const T &clave);
+    NodoAVL<T>* maximoDeArbol(NodoAVL<T> *n);
+    NodoAVL<T>* predecesorMaximo(NodoAVL<T> *abb);
     void printAVL(NodoAVL<T>* root, int space);
 };
-//Defino funciones publicas
+/***************************************Defino funciones publicas******************************************/
 
 template <class T>
 ConjuntoAVL<T>::ConjuntoAVL() {
     _raiz= nullptr;
     _cardinal=0;
-}
-template<class T>
-void ConjuntoAVL<T>::destruir(NodoAVL<T> *raiz) {
-    if (raiz != nullptr){
-        destruir(raiz->izquierda);
-        raiz->izquierda= nullptr;
-        destruir(raiz->derecha);
-        raiz->derecha= nullptr;
-        delete raiz;
-    }
 }
 
 template <class T>
@@ -77,6 +72,7 @@ template <class T>
 unsigned int ConjuntoAVL<T>::cardinal() const {
     return  _cardinal;
 }
+
 template <class T>
 bool ConjuntoAVL<T>::pertenece(const T& clave) const {
     NodoAVL<T>* subArbolActual = _raiz;
@@ -89,6 +85,7 @@ bool ConjuntoAVL<T>::pertenece(const T& clave) const {
     }
     return subArbolActual != nullptr && subArbolActual->clave == clave;
 }
+
 template <class T>
 void ConjuntoAVL<T>::insertar(const T& clave){
     if (cardinal() == 0){
@@ -118,36 +115,30 @@ void ConjuntoAVL<T>::insertar(const T& clave){
 //Entonces borro la clave. Si es la raiz pongo a su hijo como raiz, sino reubico los nodos con
 //el nodo padre (creo que debo arreglar esto para que el hijo tenga al padre nuevo lol #creo la magia debe hacerse en rebalancear)
 // y luego rebalanceo el arbol.
-template <class T>
-void ConjuntoAVL<T>::borrar(const T clave){
-    if (_raiz == nullptr){
-        return;
-    }
+
+template<class T>
+void ConjuntoAVL<T>::borrar(const T& clave){
+    if (_raiz == nullptr) return;
     NodoAVL<T> *n = _raiz;
     NodoAVL<T> *padre = _raiz;
-    NodoAVL<T> *nodBorrar = nullptr;
+    NodoAVL<T> *nodoABorrar = nullptr;
     NodoAVL<T> *hijo = _raiz;
-    while(hijo != nullptr){
+    while(hijo != nullptr && nodoABorrar == nullptr){ //Tiene la desventajas que siempre itera hasta el final LOL
         padre = n;
         n = hijo;
         hijo = clave < n->clave ? n->izquierda : n->derecha;
-        if (clave == n->clave) nodBorrar = n;
+        if (clave == n->clave) nodoABorrar = n;
     }
-    //Significa que el nodo a borrar esta en el conjunto/arbolAVL
-    if (nodBorrar != nullptr){
-        nodBorrar->clave = n->clave;
-        hijo = n->izquierda != nullptr ? n->izquierda : n->derecha;
-        //Veo si debo borrar la raiz
-        if (_raiz->clave == clave) _raiz = hijo;
-        else {
-            if (padre->izquierda == n) padre->izquierda = hijo;
-            else padre->derecha = hijo;
-            rebalancear(padre);
-        }
-        _cardinal--;
+    if (nodoABorrar->izquierda== nullptr && nodoABorrar -> derecha == nullptr){
+        removerHoja(nodoABorrar, padre);
+    } else if (nodoABorrar->izquierda == nullptr || nodoABorrar->derecha == nullptr){
+        removerConUnHijo(nodoABorrar,padre);
+    } else {
+        removerConDosHijos(nodoABorrar);
     }
+    rebalancear(padre);
+    _cardinal--;
 }
-
 template <class T>
 const T& ConjuntoAVL<T>::minimo() const {
     NodoAVL<T>* SubArbolActual = _raiz;
@@ -166,14 +157,33 @@ const T& ConjuntoAVL<T>::maximo() const {
     return SubArbolActual->clave;
 }
 
-//Defino funciones privadas
+template<class T>
+void ConjuntoAVL<T>::printAVL()
+{
+    // Pass initial space count as 0
+    printAVL(_raiz, 0);
+}
+
+/***************************************Defino funciones privadas******************************************/
+
+template<class T>
+void ConjuntoAVL<T>::destruir(NodoAVL<T> *raiz) {
+    if (raiz != nullptr){
+        destruir(raiz->izquierda);
+        raiz->izquierda= nullptr;
+        destruir(raiz->derecha);
+        raiz->derecha= nullptr;
+        delete raiz;
+    }
+}
+
 template <class T>
 void ConjuntoAVL<T>::rebalancear(NodoAVL<T>* n){
     definirBalanceo(n);
     if (n->balanceo == -2) {
         if (largo(n->izquierda->izquierda) >= largo(n->izquierda->derecha))
             n = rotacionDerecha(n);
-            else n = rotacionIzqLuegoDer(n);
+        else n = rotacionIzqLuegoDer(n);
     }
     else if (n->balanceo == 2){
         if (largo(n->derecha->derecha) >= largo(n->derecha->izquierda))
@@ -182,7 +192,12 @@ void ConjuntoAVL<T>::rebalancear(NodoAVL<T>* n){
     }
     if (n->padre != nullptr)  rebalancear(n->padre); else  _raiz = n;
 }
-//TODO: Verificar si funciona con el Cormen o algo.
+
+template <class T>
+void ConjuntoAVL<T>::definirBalanceo(NodoAVL<T> *n){
+    n->balanceo = largo(n->derecha) - largo(n->izquierda);
+}
+
 template <class T>
 NodoAVL<T>* ConjuntoAVL<T>::rotacionIzquierda (NodoAVL<T>* a){
     NodoAVL<T> *b = a->derecha;
@@ -232,101 +247,118 @@ int ConjuntoAVL<T>::largo(NodoAVL<T>* n){
     n == nullptr ? res = -1 : res = 1 + std::max(largo(n->izquierda), largo(n->derecha));
     return res;
 }
-template <class T>
-void ConjuntoAVL<T>::definirBalanceo(NodoAVL<T> *n){
-    n->balanceo = largo(n->derecha) - largo(n->izquierda);
+
+template<class T>
+void ConjuntoAVL<T>::removerHoja(NodoAVL<T> *arClave, NodoAVL<T> *padreClave) {
+    if (padreClave == nullptr){
+        _raiz= nullptr;
+    } else if (padreClave->derecha==arClave){
+        padreClave->derecha= nullptr;
+    }
+    else if (padreClave->izquierda== arClave){
+        padreClave->izquierda= nullptr;
+    }
+    delete arClave;
 }
 
-//TODO:Averiguar como printear de forma comoda el arbol AVL del conjunto
-/*
+
+//Falta definir bien el delete acá.
 template<class T>
-void ConjuntoAVL<T>::printAVL(const std::string& prefix, const NodoAVL<T>* node, bool isLeft)
-{
-    if( node != nullptr )
-    {
-        std::cout << prefix;
-
-        std::cout << (isLeft ? "|--" : "L--" );
-
-        // print the value of the node
-        std::cout << node->clave << std::endl;
-
-        // enter the next tree level - left and right branch
-        printAVL( prefix + (isLeft ? "|   " : "    "), node->izquierda, true);
-        printAVL( prefix + (isLeft ? "|   " : "    "), node->derecha, false);
+void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* arClave, NodoAVL<T> *padreClave) {
+    if (padreClave == nullptr)//si es la raiz lo que quiero eliminar
+        (arClave->derecha== nullptr) ? _raiz=arClave->izquierda : _raiz= arClave->derecha;
+    else {
+        if (arClave->izquierda == nullptr)
+            (padreClave->derecha==arClave) ? padreClave-> derecha = arClave->derecha : padreClave->izquierda= arClave->derecha;
+        else if (arClave->derecha == nullptr)
+            (padreClave->derecha==arClave) ? padreClave-> derecha = arClave->izquierda : padreClave->izquierda= arClave->izquierda;
     }
 }
-template<class T>
-void ConjuntoAVL<T>::printAVL()
-{
-    printAVL("", _raiz, false);
+
+template <class T>
+void ConjuntoAVL<T>::removerConDosHijos(NodoAVL<T> *arClave) {
+    NodoAVL<T>* predMaximo = predecesorMaximo(arClave);
+    NodoAVL<T>* padreDeMaximo = subArbolPadre(arClave, predMaximo->clave);
+    arClave->clave=predMaximo->clave;
+    if (predMaximo->izquierda== nullptr){ //me verifica si es hoja predMaximo
+        if(padreDeMaximo->derecha == predMaximo){//verifica si el predMaximo es hijo derecho
+            delete padreDeMaximo->derecha;
+            padreDeMaximo->derecha = nullptr;
+        }
+        else if (padreDeMaximo->izquierda == predMaximo){
+            delete padreDeMaximo->izquierda;
+            padreDeMaximo->izquierda = nullptr;
+        }
+    } else if (arClave->izquierda == predMaximo){
+        arClave->izquierda=predMaximo->izquierda;
+        delete predMaximo;
+    }
+    else {
+        padreDeMaximo->derecha=predMaximo->izquierda;
+        delete predMaximo;
+    }
 }
 
-// pass the root node of your binary tree
-*/
+template<class T>
+NodoAVL<T>* ConjuntoAVL<T>::subArbolPadre(NodoAVL<T> *raiz, const T &clave) {
+    NodoAVL<T> *subArbolActual = raiz;
+    NodoAVL<T> *raizDeSubArbol = nullptr;
+    while (subArbolActual != nullptr && subArbolActual->clave != clave) {
+        if (clave < subArbolActual->clave) {
+            raizDeSubArbol=subArbolActual;
+            subArbolActual = subArbolActual->izquierda;
+        }
+        else if (subArbolActual->clave < clave) {
+            raizDeSubArbol=subArbolActual;
+            subArbolActual = subArbolActual->derecha;
+        }
+    }
+    return raizDeSubArbol;
+}
 
 template<class T>
-void ConjuntoAVL<T>::printAVL(NodoAVL<T>* root, int space)
-{
-    // Base case
-    if (root == nullptr)
-        return;
+NodoAVL<T>* ConjuntoAVL<T>::maximoDeArbol(NodoAVL<T> *n) {
+    NodoAVL<T>* SubArbolActual = n;
+    while (SubArbolActual->derecha != nullptr){
+        SubArbolActual=SubArbolActual->derecha;
+    }
+    return SubArbolActual;
+}
 
+template <class T>
+NodoAVL<T>* ConjuntoAVL<T>::predecesorMaximo(NodoAVL<T> *abb){
+    NodoAVL<T>* predMaximo = maximoDeArbol(abb->izquierda);
+    return predMaximo;
+}
+
+
+template<class T>
+void ConjuntoAVL<T>::printAVL(NodoAVL<T>* root, int space) {
+    // Base case
+    if (root == nullptr)  return;
     // Increase distance between levels
     space += COUNT;
-
     // Process right child first
     printAVL(root->derecha, space);
-
     // Print current node after space
     // count
     cout << endl;
     for (int i = COUNT; i < space; i++)
         cout << " ";
     cout << root->clave << "\n";
-
     // Process left child
     printAVL(root->izquierda, space);
-}
-
-// Wrapper over print2DUtil()
-template<class T>
-void ConjuntoAVL<T>::printAVL()
-{
-    // Pass initial space count as 0
-    printAVL(_raiz, 0);
-}
-
-
-template <class T>
-void ConjuntoAVL<T>::printBalance(NodoAVL<T> *n) {
-    if (n != nullptr) {
-        printBalance(n->izquierda);
-        std::cout << n->balanceo << " ";
-        printBalance(n->derecha);
-    }
-}
-
-template <class T>
-void ConjuntoAVL<T>::printBalance() {
-    printBalance(_raiz);
-    std::cout << std::endl;
 }
 
 int main(){
     ConjuntoAVL<int> c;
     vector<int> elementos;
     for (int i = 0; i < 10; ++i) {
-        int n = rand();
-        c.insertar(n);
-        elementos.push_back(n);
+        c.insertar(i);
+        elementos.push_back(i);
     }
-
-    for(int i = 0; i < 5; ++i){
-        int random = rand() % elementos.size();
-        int sel_elem = elementos[random];
-        c.borrar(sel_elem);
-    }
-    std::cout << c.cardinal() << std::endl;
+    c.borrar(8);
     c.printAVL();
+  //  std::cout << c.cardinal() << std::endl;
+ //   c.printAVL();
 }
