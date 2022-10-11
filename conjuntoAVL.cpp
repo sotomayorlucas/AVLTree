@@ -19,6 +19,8 @@ public:
     NodoAVL *izquierda, *derecha, *padre;
     NodoAVL(T clave, NodoAVL *p) : clave(clave), balanceo(0), padre(p), izquierda(nullptr), derecha(nullptr) {}
     ~NodoAVL(){
+        izquierda = nullptr;
+        derecha = nullptr;
         delete izquierda;
         delete derecha;
     }
@@ -126,7 +128,7 @@ void ConjuntoAVL<T>::borrar(const T& clave){
         else
             removerConDosHijos(nodo);
         rebalancear(padre);
-        _cardinal--;   
+        _cardinal--;
     }
 }
 template <class T>
@@ -261,10 +263,6 @@ void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreN
             }
         }
     }
-    //Anulo los nodos asi puedo borrarlo.
-    nodoBorrar->derecha= nullptr;
-    nodoBorrar->izquierda= nullptr;
-    nodoBorrar->padre = nullptr;
     delete nodoBorrar;
 }
 
@@ -333,6 +331,13 @@ int main(){
     vector<int> elementos;
     int d;
     int n;
+    for (int i = 0; i < 10; ++i) {
+        c.insertar(i);
+    }
+    c.borrar(8);
+    c.borrar(5);
+    c.printAVL();
+    /*
     bool cerrarCiclo = false;
     while(!cerrarCiclo){
         cout << "Desea saber tamaño del conjunto (0) si n pertenece (1), agregar elemento (2), borrar elemento (3) maximo (4) minimo (5) cerrar(99) otra cosa printAVL" << endl;
@@ -349,7 +354,7 @@ int main(){
             cout << "N pertenece al conjunto?" << endl;
             cin >> n;
             bool p = c.pertenece(n);
-            p ? cout << n << " pertenece" <<endl : cout << n << " no pertenece" << endl; 
+            p ? cout << n << " pertenece" <<endl : cout << n << " no pertenece" << endl;
             c.printAVL();
             break;
         }
@@ -391,4 +396,5 @@ int main(){
         }
         }
     }
+     */
 }
