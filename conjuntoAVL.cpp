@@ -114,7 +114,7 @@ template<class T>
 void ConjuntoAVL<T>::borrar(const T& clave){
     if (_raiz == nullptr) return;
     NodoAVL<T> *nodo = _raiz;
-    NodoAVL<T> *padre = _raiz;
+    NodoAVL<T> *padre = nullptr;
     NodoAVL<T> *hijo = _raiz;
     while(hijo != nullptr && nodo->clave != clave){ //Itero hasta encontrar el nodo con la clave a borrar
         padre = nodo; nodo = hijo;
@@ -127,8 +127,9 @@ void ConjuntoAVL<T>::borrar(const T& clave){
             removerConUnHijo(nodo,padre);
         else
             removerConDosHijos(nodo);
-        rebalancear(padre);
         _cardinal--;
+        if (padre == nullptr) { if (_cardinal > 0) rebalancear(_raiz); }
+        else rebalancear(padre);
     }
 }
 template <class T>
@@ -170,10 +171,10 @@ void ConjuntoAVL<T>::rebalancear(NodoAVL<T>* nodo){
     definirBalanceo(nodo);
     if (nodo->balanceo == -2)
         (largo(nodo->izquierda->izquierda) >= largo(nodo->izquierda->derecha)) ?
-            nodo = rotacionDerecha(nodo) : nodo = rotacionIzqLuegoDer(nodo);
+                nodo = rotacionDerecha(nodo) : nodo = rotacionIzqLuegoDer(nodo);
     else if (nodo->balanceo == 2)
         (largo(nodo->derecha->derecha) >= largo(nodo->derecha->izquierda)) ?
-            nodo = rotacionIzquierda(nodo) : nodo = rotacionDerLuegoIzq(nodo);
+                nodo = rotacionIzquierda(nodo) : nodo = rotacionDerLuegoIzq(nodo);
     if (nodo->padre != nullptr)  rebalancear(nodo->padre); else  _raiz = nodo;
 }
 
@@ -226,20 +227,27 @@ NodoAVL<T>* ConjuntoAVL<T>::rotacionDerLuegoIzq(NodoAVL<T> *nodo) {
 }
 
 template <class T>
-int ConjuntoAVL<T>::largo(NodoAVL<T>* n){
-    return n == nullptr ? -1 : 1 + max(largo(n->izquierda), largo(n->derecha));
+int ConjuntoAVL<T>::largo(NodoAVL<T>* nodo){
+    return nodo == nullptr ? -1 : 1 + max(largo(nodo->izquierda), largo(nodo->derecha));
 }
 
 template<class T>
 void ConjuntoAVL<T>::removerHoja(NodoAVL<T> *nodoBorrar, NodoAVL<T> *padreNodo) {
     if (padreNodo == nullptr) _raiz= nullptr;
-    padreNodo->derecha==nodoBorrar ? padreNodo->derecha= nullptr : padreNodo->izquierda= nullptr;
+    else padreNodo->derecha==nodoBorrar ? padreNodo->derecha= nullptr : padreNodo->izquierda= nullptr;
     delete nodoBorrar;
 }
 template <class T>
 void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreNodo) {
     if (padreNodo == nullptr)//si es la raiz lo que quiero eliminar
-        (nodoBorrar->derecha== nullptr) ? _raiz=nodoBorrar->izquierda : _raiz= nodoBorrar->derecha;
+        if (nodoBorrar->derecha== nullptr)  {
+            _raiz=nodoBorrar->izquierda;
+            _raiz->padre = nullptr;
+        }
+        else {
+            _raiz= nodoBorrar->derecha;
+            _raiz->padre = nullptr;
+        }
     else {
         if (padreNodo->derecha == nodoBorrar) {
             nodoBorrar->izquierda == nullptr ? padreNodo->derecha = nodoBorrar->derecha
@@ -255,35 +263,6 @@ void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreN
     delete nodoBorrar;
 }
 
-/*
-template<class T>
-void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreNodo) {
-    if (padreNodo == nullptr)//si es la raiz lo que quiero eliminar
-        (nodoBorrar->derecha== nullptr) ? _raiz=nodoBorrar->izquierda : _raiz= nodoBorrar->derecha;
-    else {
-        if (nodoBorrar->izquierda == nullptr) {
-            if (padreNodo->derecha == nodoBorrar) {
-                padreNodo->derecha = nodoBorrar->derecha;
-                padreNodo->derecha->padre = padreNodo;
-            }
-            else {
-                padreNodo->izquierda = nodoBorrar->derecha;
-                padreNodo->izquierda->padre = padreNodo;
-            }
-        }
-        else {
-            if (padreNodo->derecha == nodoBorrar) {
-                padreNodo->derecha = nodoBorrar->izquierda;
-                padreNodo->derecha->padre = padreNodo;
-            }
-            else {
-                padreNodo->izquierda = nodoBorrar->izquierda;
-                padreNodo->izquierda->padre = padreNodo;
-            }
-        }
-    }
-    delete nodoBorrar;
-}*/
 
 template <class T>
 void ConjuntoAVL<T>::removerConDosHijos(NodoAVL<T> *nodoBorrar) {
