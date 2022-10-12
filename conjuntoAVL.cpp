@@ -43,8 +43,8 @@ private: //Funciones necesarias para el funcionamiento del AVL pero no para el u
     void destruir(NodoAVL<T>* raiz);
     void rebalancear(NodoAVL<T>* nodo);
     void definirBalanceo(NodoAVL<T>* nodo);
-    NodoAVL<T>* rotacionIzquierda (NodoAVL<T>* a);
-    NodoAVL<T>* rotacionDerecha (NodoAVL<T>* a);
+    NodoAVL<T>* rotacionIzquierda (NodoAVL<T>* nodo);
+    NodoAVL<T>* rotacionDerecha (NodoAVL<T>* nodo);
     NodoAVL<T>* rotacionIzqLuegoDer (NodoAVL<T>* n);
     NodoAVL<T>* rotacionDerLuegoIzq (NodoAVL<T>* nodo);
     int largo (NodoAVL<T>* nodo);
@@ -185,32 +185,32 @@ void ConjuntoAVL<T>::definirBalanceo(NodoAVL<T> *nodo){
 }
 
 template <class T>
-NodoAVL<T>* ConjuntoAVL<T>::rotacionIzquierda (NodoAVL<T>* a){
-    NodoAVL<T> *b = a->derecha;
-    b->padre= a->padre;
-    a->derecha = b->izquierda;
-    if (a->derecha != nullptr) a->derecha->padre = a;
-    b->izquierda=a;
-    a->padre=b;
-    if(b->padre != nullptr)
-        (b->padre->derecha == a) ? b->padre->derecha = b : b->padre->izquierda = b;
-    definirBalanceo(a);
-    definirBalanceo(b);
-    return b;
+NodoAVL<T>* ConjuntoAVL<T>::rotacionIzquierda (NodoAVL<T>* nodo){
+    NodoAVL<T> *nuevoNodoRaiz = nodo->derecha; //Nuevo nodo raiz del subarbol que se enraizaba en el nodo.
+    nuevoNodoRaiz->padre= nodo->padre;
+    nodo->derecha = nuevoNodoRaiz->izquierda;
+    if (nodo->derecha != nullptr) nodo->derecha->padre = nodo;
+    nuevoNodoRaiz->izquierda=nodo;
+    nodo->padre=nuevoNodoRaiz;
+    if(nuevoNodoRaiz->padre != nullptr)
+        (nuevoNodoRaiz->padre->derecha == nodo) ? nuevoNodoRaiz->padre->derecha = nuevoNodoRaiz : nuevoNodoRaiz->padre->izquierda = nuevoNodoRaiz;
+    definirBalanceo(nodo);
+    definirBalanceo(nuevoNodoRaiz);
+    return nuevoNodoRaiz;
 }
 template<class T>
-NodoAVL<T>* ConjuntoAVL<T>::rotacionDerecha(NodoAVL<T>* a){
-    NodoAVL<T> *b = a->izquierda;
-    b->padre= a->padre;
-    a->izquierda = b->derecha;
-    if (a->izquierda != nullptr) a->izquierda->padre = a;
-    b->derecha=a;
-    a->padre=b;
-    if(b->padre != nullptr)
-        (b->padre->derecha == a) ? b->padre->derecha = b : b->padre->izquierda = b;
-    definirBalanceo(a);
-    definirBalanceo(b);
-    return b;
+NodoAVL<T>* ConjuntoAVL<T>::rotacionDerecha(NodoAVL<T>* nodo){
+    NodoAVL<T> *nuevoNodoRaiz = nodo->izquierda; //Nuevo nodo raiz del subarbol que se enraizaba en el nodo.
+    nuevoNodoRaiz->padre= nodo->padre;
+    nodo->izquierda = nuevoNodoRaiz->derecha;
+    if (nodo->izquierda != nullptr) nodo->izquierda->padre = nodo;
+    nuevoNodoRaiz->derecha=nodo;
+    nodo->padre=nuevoNodoRaiz;
+    if(nuevoNodoRaiz->padre != nullptr)
+        (nuevoNodoRaiz->padre->derecha == nodo) ? nuevoNodoRaiz->padre->derecha = nuevoNodoRaiz : nuevoNodoRaiz->padre->izquierda = nuevoNodoRaiz;
+    definirBalanceo(nodo);
+    definirBalanceo(nuevoNodoRaiz);
+    return nuevoNodoRaiz;
 }
 
 template <class T>
