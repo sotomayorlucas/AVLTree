@@ -128,8 +128,8 @@ void ConjuntoAVL<T>::borrar(const T& clave){
         else
             removerConDosHijos(nodo);
         _cardinal--;
-        if (padre == nullptr) { if (_cardinal > 0) rebalancear(_raiz); }
-        else rebalancear(padre);
+        if (padre == nullptr && _raiz != nullptr) rebalancear(_raiz);
+        else if (padre != nullptr) rebalancear(padre);
     }
 }
 template <class T>
@@ -262,7 +262,6 @@ void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreN
     }
     delete nodoBorrar;
 }
-
 
 template <class T>
 void ConjuntoAVL<T>::removerConDosHijos(NodoAVL<T> *nodoBorrar) {
