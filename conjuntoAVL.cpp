@@ -77,7 +77,8 @@ template <class T>
 bool ConjuntoAVL<T>::pertenece(const T& clave) const {
     NodoAVL<T>* nodo = _raiz;
     while (nodo != nullptr && nodo->clave != clave)
-        (clave < nodo->clave) ? nodo = nodo->izquierda : nodo = nodo->derecha;
+        (clave < nodo->clave) ? nodo = nodo->izquierda
+                              : nodo = nodo->derecha;
     return nodo != nullptr && nodo->clave == clave;
 }
 
@@ -94,7 +95,8 @@ void ConjuntoAVL<T>::insertar(const T& clave){
             nodo->clave == clave ? agregado = true : agregado = false;
             nodo = irIzquierda ? nodo->izquierda : nodo->derecha;
             if (nodo==nullptr && !agregado){
-                irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,padre) : padre->derecha = new NodoAVL<T>(clave,padre);
+                irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,padre)
+                            : padre->derecha = new NodoAVL<T>(clave,padre);
                 agregado = true;
                 rebalancear(padre);
             }
@@ -166,16 +168,12 @@ void ConjuntoAVL<T>::destruir(NodoAVL<T> *raiz) {
 template <class T>
 void ConjuntoAVL<T>::rebalancear(NodoAVL<T>* nodo){
     definirBalanceo(nodo);
-    if (nodo->balanceo == -2) {
-        if (largo(nodo->izquierda->izquierda) >= largo(nodo->izquierda->derecha))
-            nodo = rotacionDerecha(nodo);
-        else nodo = rotacionIzqLuegoDer(nodo);
-    }
-    else if (nodo->balanceo == 2){
-        if (largo(nodo->derecha->derecha) >= largo(nodo->derecha->izquierda))
-            nodo = rotacionIzquierda(nodo);
-        else nodo = rotacionDerLuegoIzq(nodo);
-    }
+    if (nodo->balanceo == -2)
+        (largo(nodo->izquierda->izquierda) >= largo(nodo->izquierda->derecha)) ?
+            nodo = rotacionDerecha(nodo) : nodo = rotacionIzqLuegoDer(nodo);
+    else if (nodo->balanceo == 2)
+        (largo(nodo->derecha->derecha) >= largo(nodo->derecha->izquierda)) ?
+            nodo = rotacionIzquierda(nodo) : nodo = rotacionDerLuegoIzq(nodo);
     if (nodo->padre != nullptr)  rebalancear(nodo->padre); else  _raiz = nodo;
 }
 
@@ -193,21 +191,23 @@ NodoAVL<T>* ConjuntoAVL<T>::rotacionIzquierda (NodoAVL<T>* nodo){
     nuevoNodoRaiz->izquierda=nodo;
     nodo->padre=nuevoNodoRaiz;
     if(nuevoNodoRaiz->padre != nullptr)
-        (nuevoNodoRaiz->padre->derecha == nodo) ? nuevoNodoRaiz->padre->derecha = nuevoNodoRaiz : nuevoNodoRaiz->padre->izquierda = nuevoNodoRaiz;
+        (nuevoNodoRaiz->padre->derecha == nodo) ? nuevoNodoRaiz->padre->derecha = nuevoNodoRaiz
+                                                : nuevoNodoRaiz->padre->izquierda = nuevoNodoRaiz;
     definirBalanceo(nodo);
     definirBalanceo(nuevoNodoRaiz);
     return nuevoNodoRaiz;
 }
 template<class T>
 NodoAVL<T>* ConjuntoAVL<T>::rotacionDerecha(NodoAVL<T>* nodo){
-    NodoAVL<T> *nuevoNodoRaiz = nodo->izquierda; //Nuevo nodo raiz del subarbol que se enraizaba en el nodo.
+    NodoAVL<T> *nuevoNodoRaiz = nodo->izquierda;
     nuevoNodoRaiz->padre= nodo->padre;
     nodo->izquierda = nuevoNodoRaiz->derecha;
     if (nodo->izquierda != nullptr) nodo->izquierda->padre = nodo;
     nuevoNodoRaiz->derecha=nodo;
     nodo->padre=nuevoNodoRaiz;
     if(nuevoNodoRaiz->padre != nullptr)
-        (nuevoNodoRaiz->padre->derecha == nodo) ? nuevoNodoRaiz->padre->derecha = nuevoNodoRaiz : nuevoNodoRaiz->padre->izquierda = nuevoNodoRaiz;
+        (nuevoNodoRaiz->padre->derecha == nodo) ? nuevoNodoRaiz->padre->derecha = nuevoNodoRaiz
+                                                : nuevoNodoRaiz->padre->izquierda = nuevoNodoRaiz;
     definirBalanceo(nodo);
     definirBalanceo(nuevoNodoRaiz);
     return nuevoNodoRaiz;
@@ -236,7 +236,26 @@ void ConjuntoAVL<T>::removerHoja(NodoAVL<T> *nodoBorrar, NodoAVL<T> *padreNodo) 
     padreNodo->derecha==nodoBorrar ? padreNodo->derecha= nullptr : padreNodo->izquierda= nullptr;
     delete nodoBorrar;
 }
+template <class T>
+void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreNodo) {
+    if (padreNodo == nullptr)//si es la raiz lo que quiero eliminar
+        (nodoBorrar->derecha== nullptr) ? _raiz=nodoBorrar->izquierda : _raiz= nodoBorrar->derecha;
+    else {
+        if (padreNodo->derecha == nodoBorrar) {
+            nodoBorrar->izquierda == nullptr ? padreNodo->derecha = nodoBorrar->derecha
+                                             : padreNodo->derecha = nodoBorrar->izquierda;
+            padreNodo->derecha->padre = padreNodo;
+        }
+        else {
+            nodoBorrar->izquierda == nullptr ? padreNodo->izquierda = nodoBorrar->derecha
+                                             : padreNodo->izquierda = nodoBorrar->izquierda;
+            padreNodo->izquierda->padre = padreNodo;
+        }
+    }
+    delete nodoBorrar;
+}
 
+/*
 template<class T>
 void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreNodo) {
     if (padreNodo == nullptr)//si es la raiz lo que quiero eliminar
@@ -246,7 +265,8 @@ void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreN
             if (padreNodo->derecha == nodoBorrar) {
                 padreNodo->derecha = nodoBorrar->derecha;
                 padreNodo->derecha->padre = padreNodo;
-            } else {
+            }
+            else {
                 padreNodo->izquierda = nodoBorrar->derecha;
                 padreNodo->izquierda->padre = padreNodo;
             }
@@ -255,14 +275,15 @@ void ConjuntoAVL<T>::removerConUnHijo(NodoAVL<T>* nodoBorrar, NodoAVL<T> *padreN
             if (padreNodo->derecha == nodoBorrar) {
                 padreNodo->derecha = nodoBorrar->izquierda;
                 padreNodo->derecha->padre = padreNodo;
-            } else {
+            }
+            else {
                 padreNodo->izquierda = nodoBorrar->izquierda;
                 padreNodo->izquierda->padre = padreNodo;
             }
         }
     }
     delete nodoBorrar;
-}
+}*/
 
 template <class T>
 void ConjuntoAVL<T>::removerConDosHijos(NodoAVL<T> *nodoBorrar) {
