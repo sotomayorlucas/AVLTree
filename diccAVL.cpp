@@ -91,28 +91,33 @@ const T& DiccionarioAVL<T>::obtener(const T &clave) const {
 
 template <class T>
 void DiccionarioAVL<T>::definir(const T& clave, const T& definicion){
-    if (cardinal() == 0) _raiz = new NodoAVL<T>(clave,definicion,nullptr);
-    else {
+    if (cardinal() == 0) {
+        _raiz = new NodoAVL<T>(clave,definicion,nullptr);
+        _cardinal++;
+    } else {
         NodoAVL<T> *nodo = _raiz;
         NodoAVL<T> *padre;
         bool agregado = false;
+        bool nuevo = false;
         while (!agregado) {
             padre = nodo;
             bool irIzquierda = clave < nodo->clave;
             if (nodo->clave == clave) {
                 nodo->definicion = definicion;
-                agregado = true;
-            }
-            nodo = irIzquierda ? nodo->izquierda : nodo->derecha;
-            if (nodo==nullptr && !agregado){
-                irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,definicion,padre)
-                            : padre->derecha = new NodoAVL<T>(clave,definicion,padre);
-                agregado = true;
-                rebalancear(padre);
+                agregado = true;  // ya estaba definida
+            } else {
+                nodo = irIzquierda ? nodo->izquierda : nodo->derecha;
+                if (nodo==nullptr){
+                    irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,definicion,padre)
+                                : padre->derecha = new NodoAVL<T>(clave,definicion,padre);
+                    agregado = true;
+                    nuevo = true;
+                    rebalancear(padre);
+                }
             }
         }
+        if (nuevo) _cardinal++;
     }
-    _cardinal++;
 }
 
 //Hago el borrado del Nodo, verifico si el arbol existe y luego busco el nodo. Si el elemento esta

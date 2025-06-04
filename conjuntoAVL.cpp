@@ -84,25 +84,32 @@ bool ConjuntoAVL<T>::pertenece(const T& clave) const {
 
 template <class T>
 void ConjuntoAVL<T>::insertar(const T& clave){
-    if (cardinal() == 0) _raiz = new NodoAVL<T>(clave, nullptr);
-    else {
+    if (cardinal() == 0) {
+        _raiz = new NodoAVL<T>(clave, nullptr);
+        _cardinal++;
+    } else {
         NodoAVL<T> *nodo = _raiz;
         NodoAVL<T> *padre;
         bool agregado = false;
+        bool nuevo = false;
         while (!agregado) {
             padre = nodo;
             bool irIzquierda = clave < nodo->clave;
-            nodo->clave == clave ? agregado = true : agregado = false;
-            nodo = irIzquierda ? nodo->izquierda : nodo->derecha;
-            if (nodo==nullptr && !agregado){
-                irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,padre)
-                            : padre->derecha = new NodoAVL<T>(clave,padre);
-                agregado = true;
-                rebalancear(padre);
+            if (nodo->clave == clave) {
+                agregado = true;  // ya estaba en el arbol
+            } else {
+                nodo = irIzquierda ? nodo->izquierda : nodo->derecha;
+                if (nodo==nullptr){
+                    irIzquierda ? padre->izquierda = new NodoAVL<T>(clave,padre)
+                                : padre->derecha = new NodoAVL<T>(clave,padre);
+                    agregado = true;
+                    nuevo = true;
+                    rebalancear(padre);
+                }
             }
         }
+        if (nuevo) _cardinal++;
     }
-    _cardinal++;
 }
 
 //Hago el borrado del Nodo, verifico si el arbol existe y luego busco el nodo. Si el elemento esta
