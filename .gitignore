@@ -1,0 +1,41 @@
+# Compiled executables
+AVL
+avl
+benchmark_dod
+test_dod
+
+# Object files
+*.o
+*.obj
+
+# Compiled libraries
+*.a
+*.lib
+
+# Shared objects
+*.so
+*.dylib
+*.dll
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build directories
+build/
+dist/
+bin/
+obj/
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
