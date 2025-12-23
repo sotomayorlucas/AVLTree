@@ -3,6 +3,8 @@ AVL
 avl
 benchmark_dod
 test_dod
+benchmark_three_paradigms
+test_all_paradigms
 
 # Object files
 *.o
