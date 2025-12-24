@@ -8,6 +8,7 @@ test_all_paradigms
 benchmark_concurrency
 benchmark_concurrency_simple
 benchmark_mt
+benchmark_granular_locking
 
 # Object files
 *.o
