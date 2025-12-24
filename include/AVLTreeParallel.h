@@ -12,6 +12,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <algorithm>
 
 // Parallel AVL Tree: Tree-of-Trees Architecture
 //
@@ -236,27 +237,97 @@ public:
         return info;
     }
 
+    // Helper: Extraer todos los elementos de un shard
+    std::vector<std::pair<Key, Value>> extractAllElements(TreeShard* shard) {
+        std::vector<std::pair<Key, Value>> elements;
+        extractElementsRec(shard->tree.getRoot(), elements);
+        return elements;
+    }
+
+private:
+    // Helper recursivo para extraer elementos
+    void extractElementsRec(typename AVLTree<Key, Value>::Node* node,
+                           std::vector<std::pair<Key, Value>>& elements) {
+        if (!node) return;
+        extractElementsRec(node->left, elements);
+        elements.push_back({node->key, node->value});
+        extractElementsRec(node->right, elements);
+    }
+
+public:
     // Rebalanceo entre árboles (si un árbol tiene mucho más que otros)
-    void rebalanceShards() {
-        // Lock todos los shards
+    void rebalanceShards(double threshold = 2.0) {
+        // Lock todos los shards para operación atómica
         std::vector<std::unique_lock<std::mutex>> locks;
         for (auto& shard : shards_) {
             locks.emplace_back(shard->lock);
         }
 
-        // Estrategia simple: Si un shard tiene > 2x promedio, redistribuir
-        // En producción: Split/merge de shards
-
-        // Por ahora: solo reportar que necesita rebalanceo
         auto info = getArchitectureInfo();
-        if (info.load_balance_score < 0.7) {
-            // Necesita rebalanceo
-            // Implementación completa requeriría:
-            // 1. Identificar shards sobrecargados
-            // 2. Extraer elementos
-            // 3. Re-insertar en shards con menos carga
-            // 4. Actualizar routing
+
+        // Si el balanceo es bueno, no hacer nada
+        if (info.load_balance_score >= 0.8) {
+            return;
         }
+
+        // Identificar shards sobrecargados y subcargados
+        struct ShardLoad {
+            size_t index;
+            size_t size;
+        };
+
+        std::vector<ShardLoad> loads;
+        for (size_t i = 0; i < num_shards_; ++i) {
+            loads.push_back({i, shards_[i]->local_size});
+        }
+
+        // Ordenar por tamaño
+        std::sort(loads.begin(), loads.end(),
+                 [](const ShardLoad& a, const ShardLoad& b) {
+                     return a.size > b.size;
+                 });
+
+        // Estrategia: Migrar elementos del más lleno al más vacío
+        size_t overloaded_idx = loads[0].index;
+        size_t underloaded_idx = loads[num_shards_ - 1].index;
+
+        // Si el más lleno tiene > threshold * promedio, redistribuir
+        if (loads[0].size > threshold * info.avg_elements_per_shard &&
+            loads[0].size > 0) {
+
+            auto& overloaded = shards_[overloaded_idx];
+            auto& underloaded = shards_[underloaded_idx];
+
+            // Calcular cuántos elementos mover
+            size_t excess = overloaded->local_size - static_cast<size_t>(info.avg_elements_per_shard);
+            size_t to_move = std::min(excess / 2, overloaded->local_size / 2);
+
+            // Solo mover los elementos necesarios (no todos)
+            std::vector<std::pair<Key, Value>> elements = extractAllElements(overloaded.get());
+
+            // Limpiar el shard sobrecargado
+            overloaded->tree.clear();
+            overloaded->local_size = 0;
+
+            // Quedarse con (size - to_move) elementos, mover to_move al otro shard
+            size_t keep_count = elements.size() - to_move;
+
+            for (size_t i = 0; i < elements.size(); ++i) {
+                if (i < keep_count) {
+                    overloaded->tree.insert(elements[i].first, elements[i].second);
+                    overloaded->local_size++;
+                } else {
+                    underloaded->tree.insert(elements[i].first, elements[i].second);
+                    underloaded->local_size++;
+                }
+            }
+        }
+    }
+
+    // Rebalanceo automático si es necesario
+    bool shouldRebalance(double threshold = 0.7) const {
+        auto info = getArchitectureInfo();
+        return info.load_balance_score < threshold;
     }
 
     // Para debugging: imprimir distribución

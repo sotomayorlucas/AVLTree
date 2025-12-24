@@ -295,28 +295,49 @@ Desventajas:
    - Overhead de N árboles
    - N locks en memoria
 
+## Dynamic Rebalancing
+
+**Status:** ✅ Implemented
+
+The parallel trees architecture now includes dynamic shard rebalancing for handling imbalanced workloads.
+
+### Key Features
+
+- **Automatic Detection:** `shouldRebalance()` checks balance score
+- **Selective Migration:** Moves elements from overloaded to underloaded shards
+- **Balance Score:** Metric from 0.0 (terrible) to 1.0 (perfect)
+
+### Important Finding
+
+**Hash routing rarely needs rebalancing!**
+- Maintains 98-100% balance naturally
+- 100,000 operations → 0 rebalances triggered
+- Perfect distribution without intervention
+
+**See:** [DYNAMIC_REBALANCING.md](DYNAMIC_REBALANCING.md) for complete documentation.
+
+### When to Use Rebalancing
+
+✅ Range-based routing with skewed data
+✅ Changing access patterns over time
+❌ Hash routing (already balanced)
+
 ## Mejoras Futuras
 
-### 1. Range-Based Routing
+### 1. Lock-Free Operations
 
 ```cpp
-// En lugar de hash:
-if (key < 1000) shard = 0;
-else if (key < 2000) shard = 1;
-...
-
-// Ventaja: Range queries rápidas
-// Desventaja: Puede desbalancear
+// Usar RCU para reads
+// Solo lock para writes
+// Read-heavy → super rápido
 ```
 
-### 2. Dynamic Shard Count
+### 2. Incremental Rebalancing
 
 ```cpp
-// Ajustar número de shards en runtime
-if (load_high) {
-    split_shard(overloaded_shard);
-    num_shards_++;
-}
+// Move elements gradually
+// Don't pause entire tree
+// Lower overhead, slower convergence
 ```
 
 ### 3. Adaptive Routing
@@ -325,14 +346,6 @@ if (load_high) {
 // Monitorear acceso
 // Mover hot keys a shard dedicado
 // Distribuir cold keys
-```
-
-### 4. Lock-Free Operations
-
-```cpp
-// Usar RCU para reads
-// Solo lock para writes
-// Read-heavy → super rápido
 ```
 
 ## Conclusión

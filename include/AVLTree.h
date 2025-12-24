@@ -11,7 +11,11 @@
 template<typename Key, typename Value = Key>
 class AVLTree : public BinarySearchTree<Key, Value> {
     using Base = BinarySearchTree<Key, Value>;
+
+public:
     using Node = typename Base::Node;
+
+private:
 
     int height(Node* n) const { return n ? n->height : 0; }
 
@@ -85,6 +89,9 @@ protected:
 
 public:
     AVLTree() : Base() {}
+
+    // Allow access to root for parallel tree extraction
+    Node* getRoot() const { return this->root_; }
 };
 
 #endif // AVL_TREE_H
