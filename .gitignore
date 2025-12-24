@@ -3,6 +3,13 @@ AVL
 avl
 benchmark_dod
 test_dod
+benchmark_three_paradigms
+test_all_paradigms
+benchmark_concurrency
+benchmark_concurrency_simple
+benchmark_mt
+benchmark_granular_locking
+benchmark_parallel_trees
 
 # Object files
 *.o
