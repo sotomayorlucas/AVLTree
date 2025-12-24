@@ -9,6 +9,7 @@ benchmark_concurrency
 benchmark_concurrency_simple
 benchmark_mt
 benchmark_granular_locking
+benchmark_parallel_trees
 
 # Object files
 *.o
