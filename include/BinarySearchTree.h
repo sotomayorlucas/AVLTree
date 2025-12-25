@@ -133,6 +133,12 @@ public:
     const Key& minKey() const { return subtreeMin(root_)->key; }
 
     const Key& maxKey() const { return subtreeMax(root_)->key; }
+
+    void clear() {
+        destroy(root_);
+        root_ = nullptr;
+        size_ = 0;
+    }
 };
 
 #endif // BINARY_SEARCH_TREE_H

@@ -10,6 +10,12 @@ benchmark_concurrency_simple
 benchmark_mt
 benchmark_granular_locking
 benchmark_parallel_trees
+benchmark_rebalancing
+benchmark_chaos_rebalancing
+benchmark_hotspot_attack
+benchmark_routing_strategies
+benchmark_adaptive_defense
+test_rebalancing_simple
 
 # Object files
 *.o

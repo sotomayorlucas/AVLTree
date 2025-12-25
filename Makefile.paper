@@ -1,0 +1,47 @@
+# Makefile for compiling the Parallel Trees paper
+
+PAPER = parallel_trees_paper
+LATEX = pdflatex
+BIBTEX = bibtex
+
+.PHONY: all clean paper view
+
+all: paper
+
+paper: $(PAPER).pdf
+
+$(PAPER).pdf: $(PAPER).tex
+	$(LATEX) $(PAPER).tex
+	$(LATEX) $(PAPER).tex
+	@echo "Paper compiled successfully: $(PAPER).pdf"
+
+view: $(PAPER).pdf
+	xdg-open $(PAPER).pdf || open $(PAPER).pdf || evince $(PAPER).pdf
+
+clean:
+	rm -f $(PAPER).aux $(PAPER).log $(PAPER).out $(PAPER).toc
+	rm -f $(PAPER).bbl $(PAPER).blg
+	@echo "Cleaned auxiliary files"
+
+distclean: clean
+	rm -f $(PAPER).pdf
+	@echo "Removed PDF"
+
+# Quick syntax check (doesn't produce PDF)
+check:
+	$(LATEX) -draftmode -interaction=nonstopmode $(PAPER).tex
+
+help:
+	@echo "Makefile for Parallel Trees paper"
+	@echo ""
+	@echo "Targets:"
+	@echo "  make         - Compile paper to PDF"
+	@echo "  make paper   - Same as make"
+	@echo "  make view    - Open PDF in viewer"
+	@echo "  make clean   - Remove auxiliary files"
+	@echo "  make distclean - Remove all generated files"
+	@echo "  make check   - Quick syntax check"
+	@echo ""
+	@echo "Requirements:"
+	@echo "  - pdflatex (texlive-latex-base)"
+	@echo "  - LaTeX packages (texlive-latex-extra)"
