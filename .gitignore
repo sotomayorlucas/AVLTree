@@ -14,6 +14,7 @@ benchmark_rebalancing
 benchmark_chaos_rebalancing
 benchmark_hotspot_attack
 benchmark_routing_strategies
+benchmark_adaptive_defense
 test_rebalancing_simple
 
 # Object files
