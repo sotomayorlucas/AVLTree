@@ -13,6 +13,7 @@ benchmark_parallel_trees
 benchmark_rebalancing
 benchmark_chaos_rebalancing
 benchmark_hotspot_attack
+benchmark_routing_strategies
 test_rebalancing_simple
 
 # Object files
