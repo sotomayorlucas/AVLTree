@@ -16,6 +16,18 @@ benchmark_hotspot_attack
 benchmark_routing_strategies
 benchmark_adaptive_defense
 test_rebalancing_simple
+test_linearizability
+throughput_bench
+adversarial_bench
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+parallel_trees_paper.pdf
 
 # Object files
 *.o
