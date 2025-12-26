@@ -17,8 +17,11 @@ benchmark_routing_strategies
 benchmark_adaptive_defense
 test_rebalancing_simple
 test_linearizability
+test_gc
+test_workloads
 throughput_bench
 adversarial_bench
+rigorous_bench
 
 # LaTeX auxiliary files
 *.aux

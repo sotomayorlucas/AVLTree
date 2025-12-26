@@ -16,13 +16,15 @@ HEADERS = $(INCLUDE_DIR)/parallel_avl.hpp \
           $(INCLUDE_DIR)/shard.hpp \
           $(INCLUDE_DIR)/router.hpp \
           $(INCLUDE_DIR)/redirect_index.hpp \
+          $(INCLUDE_DIR)/cached_load_stats.hpp \
+          $(INCLUDE_DIR)/workloads.hpp \
           $(INCLUDE_DIR)/AVLTree.h
 
 # Test executables
-TESTS = test_linearizability
+TESTS = test_linearizability test_gc test_workloads
 
 # Benchmark executables
-BENCHES = throughput_bench adversarial_bench
+BENCHES = throughput_bench adversarial_bench rigorous_bench
 
 # All targets
 ALL_TARGETS = $(TESTS) $(BENCHES)
@@ -37,6 +39,12 @@ tests: $(TESTS)
 test_linearizability: $(TEST_DIR)/linearizability_test.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS)
 
+test_gc: $(TEST_DIR)/gc_test.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS)
+
+test_workloads: $(TEST_DIR)/workloads_test.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS)
+
 # Benchmarks
 benches: $(BENCHES)
 
@@ -46,13 +54,24 @@ throughput_bench: $(BENCH_DIR)/throughput_bench.cpp $(HEADERS)
 adversarial_bench: $(BENCH_DIR)/adversarial_bench.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS)
 
+rigorous_bench: $(BENCH_DIR)/rigorous_bench.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS)
+
 # Run targets
 run-tests: tests
 	@echo ""
 	@echo "═══════════════════════════════════════════"
 	@echo "  Running Test Suite"
 	@echo "═══════════════════════════════════════════"
+	@echo ""
+	@echo "--- Linearizability Tests ---"
 	@./test_linearizability
+	@echo ""
+	@echo "--- Garbage Collection Tests ---"
+	@./test_gc
+	@echo ""
+	@echo "--- Workload Generator Tests ---"
+	@./test_workloads
 
 run-benches: benches
 	@echo ""
@@ -65,6 +84,9 @@ run-benches: benches
 	@echo ""
 	@echo "--- Adversarial Benchmark ---"
 	@./adversarial_bench
+	@echo ""
+	@echo "--- Rigorous Statistical Benchmark ---"
+	@./rigorous_bench 100000 8
 
 # Quick verification (just compile)
 verify: $(ALL_TARGETS)
