@@ -3,7 +3,11 @@
 
 #include <unordered_map>
 #include <shared_mutex>
+#include <mutex>
+#include <atomic>
 #include <optional>
+#include <functional>
+#include <algorithm>
 
 // Fix de Linearizabilidad:
 // Mantiene registro de keys que fueron redirigidas del shard natural a otro
@@ -64,6 +68,40 @@ public:
     void remove(const Key& key) {
         std::unique_lock lock(mutex_);
         redirects_.erase(key);
+    }
+
+    // Garbage Collection: Limpiar entries obsoletas
+    //
+    // Problema: Después de rebalancing, algunas keys pueden volver a su shard natural.
+    // El redirect index tendría entries innecesarias que consumen memoria.
+    //
+    // Solución: Periódicamente ejecutar GC que elimina redirects donde
+    // current_router(key) == actual_shard (ya no hay redirect)
+    //
+    // Uso: tree.get_redirect_index().gc_expired([&](const Key& k) {
+    //          return router_->route(k);
+    //      });
+    size_t gc_expired(std::function<size_t(const Key&)> current_router) {
+        std::unique_lock lock(mutex_);
+
+        size_t removed = 0;
+
+        // C++20: std::erase_if
+        // C++17: Manual iteration
+        for (auto it = redirects_.begin(); it != redirects_.end(); ) {
+            const Key& key = it->first;
+            size_t actual_shard = it->second;
+
+            // Si el router actual rutearía a este mismo shard, no hay redirect
+            if (current_router(key) == actual_shard) {
+                it = redirects_.erase(it);
+                removed++;
+            } else {
+                ++it;
+            }
+        }
+
+        return removed;
     }
 
     // Limpiar el índice (útil para testing)
